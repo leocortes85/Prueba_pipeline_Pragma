@@ -28,9 +28,9 @@ def should_process_file(file_path):
     if row is None:
         return True, fhash, None
     elif row[0] != fhash:
-        return True, fhash, row[1]  # modificado
+        return True, fhash, row[1]  
     else:
-        return False, fhash, row[1]  # sin cambios
+        return False, fhash, row[1]  
 
 
 # --- Función principal del pipeline ---
