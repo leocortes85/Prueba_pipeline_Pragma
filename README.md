@@ -11,23 +11,35 @@ El entregable incluye:
 
 ## 📂 Estructura del proyecto
 
+Este proyecto sigue una organización modular para pruebas de ingeniería de datos, facilitando la lectura, pruebas y mantenimiento.
+
+# Generando el formato correcto para el README.md
+
 prueba-ingeniero-datos/
-│── data/ # Archivos CSV de entrada (2012-1.csv ... validation.csv)
-│── notebooks/
+├── data/ # Archivos CSV de entrada (2012-1.csv ... validation.csv)
+├── notebooks/
 │ └── pipeline.ipynb # Notebook principal para la prueba
-│── src/ # Código modular estilo productivo
-│ ├── init.py
+├── src/ # Código modular estilo productivo
+│ ├── **init**.py
 │ ├── config.py # Configuración de conexión (.env, SQLAlchemy)
-│ ├── db.py # Definición de tablas y reset
+│ ├── db.py # Definición de tablas y funciones de reset
 │ ├── stats.py # Funciones de actualización de estadísticas
 │ └── pipeline.py # Lógica principal de ingesta por microbatches
-│── scripts/
+├── scripts/
 │ └── run_pipeline.py # Script CLI para ejecutar el pipeline completo
-│── tests/
+├── tests/
 │ └── test_stats.py # Prueba unitaria simple
-│── .env # Variables de entorno
-│── requirements.txt # Dependencias del proyecto
-│── README.md # Este archivo
+├── .env # Variables de entorno
+├── requirements.txt # Dependencias del proyecto
+└── README.md # Este archivo
+
+### Notas
+
+- Los archivos bajo `src/` contienen la lógica reusable y modular.
+- `notebooks/` es solo para exploración, documentación de pruebas y experimentación.
+- `scripts/` permite ejecutar el pipeline completo desde la terminal sin abrir el notebook.
+- `tests/` contiene pruebas unitarias básicas para asegurar la integridad de funciones críticas.
+- `.env` y `requirements.txt` facilitan la configuración del entorno y la instalación de dependencias.
 
 ---
 
