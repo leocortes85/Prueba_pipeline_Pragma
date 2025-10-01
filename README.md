@@ -16,21 +16,37 @@ Este proyecto sigue una organización modular para pruebas de ingeniería de dat
 # Generando el formato correcto para el README.md
 
 prueba-ingeniero-datos/
+
 ├── data/ # Archivos CSV de entrada (2012-1.csv ... validation.csv)
+
 ├── notebooks/
+
 │ └── pipeline.ipynb # Notebook principal para la prueba
+
 ├── src/ # Código modular estilo productivo
+
 │ ├── **init**.py
+
 │ ├── config.py # Configuración de conexión (.env, SQLAlchemy)
+
 │ ├── db.py # Definición de tablas y funciones de reset
+
 │ ├── stats.py # Funciones de actualización de estadísticas
+
 │ └── pipeline.py # Lógica principal de ingesta por microbatches
+
 ├── scripts/
+
 │ └── run_pipeline.py # Script CLI para ejecutar el pipeline completo
+
 ├── tests/
+
 │ └── test_stats.py # Prueba unitaria simple
+
 ├── .env # Variables de entorno
+
 ├── requirements.txt # Dependencias del proyecto
+
 └── README.md # Este archivo
 
 ### Notas
