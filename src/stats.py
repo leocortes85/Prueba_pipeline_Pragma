@@ -1,33 +1,46 @@
 from sqlalchemy import text
+import datetime
 
-def update_stats_db(conn, chunk_count, chunk_sum, chunk_min, chunk_max):
+def update_stats_db(conn, count, sum_price, min_price, max_price):
+    """
+    Actualiza la fila de estadísticas incrementales en pipeline_stats.
+    Usa sumatoria incremental en lugar de recalcular todo.
+    """
     row = conn.execute(text("SELECT total_count, sum_price, min_price, max_price FROM pipeline_stats WHERE id=1")).fetchone()
-    old_count = int(row[0]) if row and row[0] is not None else 0
-    old_sum = float(row[1]) if row and row[1] is not None else 0.0
-    old_min = float(row[2]) if row and row[2] is not None else float("inf")
-    old_max = float(row[3]) if row and row[3] is not None else float("-inf")
+    if not row:
+        conn.execute(text("""
+            INSERT INTO pipeline_stats (id, total_count, sum_price, min_price, max_price, mean_price, last_updated)
+            VALUES (1, :count, :sum_price, :min_price, :max_price, :mean_price, :last_updated)
+        """), {
+            "count": count,
+            "sum_price": sum_price,
+            "min_price": min_price,
+            "max_price": max_price,
+            "mean_price": sum_price / count if count > 0 else None,
+            "last_updated": datetime.datetime.now().isoformat()
+        })
+    else:
+        prev_count, prev_sum, prev_min, prev_max = row
+        new_count = prev_count + count
+        new_sum = prev_sum + sum_price
+        new_min = min(filter(lambda x: x is not None, [prev_min, min_price]))
+        new_max = max(filter(lambda x: x is not None, [prev_max, max_price]))
+        new_mean = new_sum / new_count if new_count > 0 else None
 
-    new_count = old_count + int(chunk_count)
-    new_sum = old_sum + float(chunk_sum)
-    new_min = min(old_min, float(chunk_min))
-    new_max = max(old_max, float(chunk_max))
-    new_mean = new_sum / new_count if new_count > 0 else None
-
-    conn.execute(text("""
-        UPDATE pipeline_stats
-        SET total_count = :new_count,
-            sum_price = :new_sum,
-            min_price = :new_min,
-            max_price = :new_max,
-            mean_price = :new_mean,
-            last_updated = now()
-        WHERE id = 1
-    """), {
-        "new_count": new_count,
-        "new_sum": new_sum,
-        "new_min": new_min,
-        "new_max": new_max,
-        "new_mean": new_mean
-    })
-
-    return {"count": new_count, "min": new_min, "max": new_max, "mean": new_mean}
+        conn.execute(text("""
+            UPDATE pipeline_stats
+            SET total_count=:count,
+                sum_price=:sum,
+                min_price=:min,
+                max_price=:max,
+                mean_price=:mean,
+                last_updated=:last_updated
+            WHERE id=1
+        """), {
+            "count": new_count,
+            "sum": new_sum,
+            "min": new_min,
+            "max": new_max,
+            "mean": new_mean,
+            "last_updated": datetime.datetime.now().isoformat()
+        })
