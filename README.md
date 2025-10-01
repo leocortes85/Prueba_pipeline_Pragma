@@ -82,7 +82,7 @@ docker run --name prueba-postgres \
 
 Verificar que el contenedor esté corriendo:
 
-## docker ps
+docker ps
 
 ## Configuración de variables de entorno
 
