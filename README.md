@@ -103,9 +103,11 @@ notebooks/pipeline.ipynb
 
 En el notebook encontrarás:
 
-Creación de tablas (transactions, pipeline_stats).
+Creación de tablas (control_files, transactions, pipeline_stats).
 
 Ingesta de 5 archivos CSV en microbatches (chunks).
+
+Control de trazabilidad para evitar duplicaciones en la ingesta
 
 Actualización incremental de estadísticas.
 
@@ -145,31 +147,51 @@ pytest tests/
 
 Almacena cada transacción fila por fila.
 
-id (PK, autoincremental)
+| Columna   | Tipo                      | Descripción                                                                                          |
+| --------- | ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| id        | INT (PK, autoincremental) | Identificador único interno.                                                                         |
+| timestamp | STRING                    | Fecha/hora del evento en formato ISO (`YYYY-MM-DD HH:MM:SS`).                                        |
+| price     | FLOAT                     | Valor numérico de la transacción.                                                                    |
+| user_id   | STRING                    | Identificador del usuario.                                                                           |
+| unique_id | STRING (UNIQUE)           | Clave técnica generada como `timestamp_user_id`, usada para evitar duplicados y permitir **UPSERT**. |
 
-timestamp (string en formato ISO)
-
-price (float)
-
-user_id (string)
+---
 
 ### pipeline_stats
 
-Mantiene una sola fila con estadísticas incrementales.
+Mantiene una sola fila con estadísticas acumuladas e incrementales.
 
-id (PK, fijo en 1)
+| Columna      | Tipo                | Descripción                                |
+| ------------ | ------------------- | ------------------------------------------ |
+| id           | INT (PK, fijo en 1) | Identificador único de la fila de stats.   |
+| total_count  | INT                 | Número total de registros procesados.      |
+| sum_price    | FLOAT               | Suma acumulada de todos los `price`.       |
+| min_price    | FLOAT               | Precio mínimo observado.                   |
+| max_price    | FLOAT               | Precio máximo observado.                   |
+| mean_price   | FLOAT               | Promedio (`sum_price / total_count`).      |
+| last_updated | STRING              | Fecha/hora ISO de la última actualización. |
 
-total_count
+---
 
-sum_price
+### file_control
 
-min_price
+Tabla de control de archivos procesados, utilizada para trazabilidad e idempotencia.
 
-max_price
+| Columna        | Tipo        | Descripción                                                 |
+| -------------- | ----------- | ----------------------------------------------------------- |
+| file_name      | STRING (PK) | Nombre del archivo procesado.                               |
+| file_hash      | STRING      | Hash MD5 del contenido del archivo (para detectar cambios). |
+| total_rows     | INT         | Número de filas procesadas del archivo.                     |
+| last_processed | STRING      | Fecha/hora ISO de la última vez que el archivo fue cargado. |
 
-mean_price
+---
 
-last_updated
+Con este esquema el pipeline asegura:
+
+- **Escalabilidad** → procesamiento por microbatches.
+- **Idempotencia** → `unique_id` + `UPSERT` evitan duplicados.
+- **Trazabilidad** → `file_control` registra qué archivos se cargaron y cuándo.
+- **Estadísticas incrementales** → `pipeline_stats` se actualiza sin recalcular todo desde cero.
 
 ## Consideraciones
 
