@@ -1,0 +1,11 @@
+# Librerías principales
+pandas
+sqlalchemy
+psycopg2-binary
+python-dotenv
+
+# Para ejecutar notebooks
+jupyterlab
+notebook
+ipykernel
+
